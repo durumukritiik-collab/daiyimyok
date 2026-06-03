@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dayım Yok</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .job-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .job-detail {
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dayım Yok</h1>
+    <input type="text" id="search-input" placeholder="Ara...">
+    <button id="search-button">Ara</button>
+    <div id="job-cards"></div>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const jobCards = document.getElementById('job-cards');
+
+        searchButton.addEventListener('click', () => {
+            const searchQuery = searchInput.value.trim();
+            if (searchQuery) {
+                fetch(`https://hrwtifmlwyheuybqbetn.supabase.co/rest/v1/jobs?select=*&filter=arame_etiketleri%3D%3D%22${searchQuery}%22`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const jobCardsHtml = data.data.map(job => `
+                            <div class="job-card">
+                                <h2>${job.title}</h2>
+                                <p>${job.organization}</p>
+                                <p>${job.city}</p>
+                                <p>${job.employment_type}</p>
+                                <p>${job.application_deadline}</p>
+                                <p>${job.url}</p>
+                                <button class="job-detail-button" data-id="${job.id}">İlan Detayı</button>
+                            </div>
+                        `).join('');
+                        jobCards.innerHTML = jobCardsHtml;
+
+                        const jobDetailButtons = document.querySelectorAll('.job-detail-button');
+                        jobDetailButtons.forEach(button => {
+                            button.addEventListener('click', () => {
+                                const jobId = button.dataset.id;
+                                fetch(`https://hrwtifmlwyheuybqbetn.supabase.co/rest/v1/jobs/${jobId}?select=*`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        const jobDetailHtml = `
+                                            <div class="job-detail">
+                                                <h2>${data.title}</h2>
+                                                <p>${data.organization}</p>
+                                                <p>${data.city}</p>
+                                                <p>${data.employment_type}</p>
+                                                <p>${data.application_deadline}</p>
+                                                <p>${data.url}</p>
+                                                <p>${data.positions}</p>
+                                                <p>${data.mezuniyet}</p>
+                                                <p>${data.kpss_sart}</p>
+                                                <p>${data.kpss_puan}</p>
+                                                <p>${data.yas_siniri}</p>
+                                                <p>${data.kontenjan}</p>
+                                                <p>${data.basvuru_sekli}</p>
+                                                <p>${data.tecrube}</p>
+                                                <p>${data.mezuniyet_seviyesi}</p>
+                                                <p>${data.sinav_tarihi}</p>
+                                            </div>
+                                        `;
+                                        const jobDetailElement = document.createElement('div');
+                                        jobDetailElement.innerHTML = jobDetailHtml;
+                                        jobCards.appendChild(jobDetailElement);
+                                    })
+                                    .catch(error => console.error(error));
+                            });
+                        });
+                    })
+                    .catch(error => console.error(error));
+            }
+        });
+    </script>
+</body>
+</html>
