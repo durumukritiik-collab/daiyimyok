@@ -1,8 +1,11 @@
 import re
 import requests
 import warnings
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from bs4 import BeautifulSoup
 from db import make_hash
+from city_extractor import extract_city
 
 warnings.filterwarnings("ignore")
 
@@ -88,10 +91,31 @@ def scrape() -> list[dict]:
 
                 title_el = link.select_one("h2.title")
                 title = title_el.get_text(strip=True) if title_el else link.get("title", "")
+
+                # h4 genellikle "Kurum Adı. Son başvuru tarihi X Ay Yıl" formatında
                 org_el = link.select_one("h4")
-                organization = org_el.get_text(strip=True) if org_el else ""
+                h4_text = org_el.get_text(strip=True) if org_el else ""
+
+                # h4'ten tarihi ayır
+                deadline = ""
+                organization = h4_text
+                tarih_match = re.search(
+                    r'[Ss]on\s+ba[şs]vuru\s+tarihi\s+(.+?)(?:\.|$)',
+                    h4_text
+                )
+                if tarih_match:
+                    deadline = tarih_match.group(1).strip()
+                    # organization = h4'ün tarih öncesi kısmı
+                    organization = h4_text[:tarih_match.start()].strip().rstrip(".")
+
+                # Eğer h4 temizlendiyse title'dan al
+                if not organization and title:
+                    organization = ""
+
+                # Ayrı date element varsa kullan
                 date_el = link.select_one(".date, .tarih, time, .deadline")
-                deadline = date_el.get_text(strip=True) if date_el else ""
+                if date_el and not deadline:
+                    deadline = date_el.get_text(strip=True)
 
                 if not title or len(title) < 5:
                     continue
@@ -101,12 +125,13 @@ def scrape() -> list[dict]:
 
                 employment_type = _parse_employment_type(title + " " + positions)
                 hash_val = make_hash(title, organization, deadline)
+                city = extract_city(organization, title)
 
                 jobs.append({
                     "source": "memurlar",
                     "title": title,
                     "organization": organization,
-                    "city": "",
+                    "city": city,
                     "employment_type": employment_type,
                     "application_deadline": deadline,
                     "url": url,

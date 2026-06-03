@@ -8,8 +8,9 @@ import sys
 import time
 from datetime import datetime
 
-from db import init_db, insert_job, get_stats
+from db import init_db, insert_job, get_stats, update_job_fields
 from supabase_client import sb_ping
+from fix_iptal import is_iptal
 
 # Scraper modülleri
 from scrapers.kamuilan import scrape as scrape_kamuilan
@@ -67,6 +68,12 @@ def calistir():
                 continue
 
             if not yeni:
+                continue
+
+            # İPTAL ilanını hemen pasife çek
+            if is_iptal(ilan.get("title", "")):
+                update_job_fields(ilan["hash"], {"is_active": 0})
+                _log(f"  [İPTAL] {ilan.get('title','')[:50]}")
                 continue
 
             yeni_sayisi += 1

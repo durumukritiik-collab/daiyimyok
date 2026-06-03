@@ -1,4 +1,31 @@
+# Ortam değişkenleri - asla commit etme
 .env
+.env.*
+!.env.example
+
+# Web
+web/.env
+web/.env.*
+web/.env.local
+
+# Veritabanı
 *.db
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+
+# Hassas token dosyaları
+oauth_token.json
+oauth_state.json
+
+# Next.js
+web/.next/
+web/out/
+web/node_modules/
+
+# OS / IDE
+.DS_Store
+.vscode/
+*.log

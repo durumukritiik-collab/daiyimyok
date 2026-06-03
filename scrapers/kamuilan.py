@@ -1,7 +1,10 @@
 import requests
 import warnings
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from bs4 import BeautifulSoup
 from db import make_hash
+from city_extractor import extract_city
 
 warnings.filterwarnings("ignore")
 
@@ -70,12 +73,13 @@ def scrape() -> list[dict]:
 
                 employment_type = _parse_employment_type(title)
                 hash_val = make_hash(title, organization, deadline)
+                city = extract_city(organization, title)
 
                 jobs.append({
                     "source": "kamuilan",
                     "title": title,
                     "organization": organization,
-                    "city": "",
+                    "city": city,
                     "employment_type": employment_type,
                     "application_deadline": deadline,
                     "url": url,
