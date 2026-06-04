@@ -27,6 +27,10 @@ export interface JobResult {
   salary?: string;
   work_type?: string;
   deadline?: string;
+  posted_date?: string;
+  apply_method?: string;
+  requirements?: string[];
+  company_info?: string;
   apply_link: string;
   score: number;
   reason: string;
@@ -205,14 +209,18 @@ Her ilan için JSON:
   "title": "pozisyon adı — ilanın gerçek başlığı",
   "company": "şirket/kurum adı",
   "location": "şehir",
-  "salary": "maaş bilgisi veya boş string",
-  "work_type": "tam zamanlı/yarı zamanlı/uzaktan/hibrit",
-  "deadline": "son başvuru tarihi veya boş string",
+  "salary": "maaş bilgisi varsa yaz (₺35.000 veya 'maaş+prim'), yoksa boş string",
+  "work_type": "tam zamanlı / yarı zamanlı / uzaktan / hibrit",
+  "deadline": "son başvuru tarihi varsa yaz, yoksa boş string",
+  "posted_date": "ilan tarihi veya 'Bu hafta' gibi göreceli, yoksa boş string",
+  "apply_method": "nasıl başvurulur — örn: 'hr@sirket.com adresine CV gönder' veya 'kariyer.net üzerinden başvur' veya 'WhatsApp: 05XX XXX XX XX'",
+  "requirements": ["aranan nitelik 1", "aranan nitelik 2", "aranan nitelik 3"],
+  "company_info": "şirket hakkında 1 cümle — ne iş yapıyor, nerede, kaç kişilik",
   "apply_link": "başvuru URL'i",
   "score": 0-100,
-  "reason": "Kullanıcının profiline özel, somut 2 cümle. Sen diye hitap et.",
+  "reason": "Kullanıcının profiline özel, somut 2 cümle. Sen diye hitap et. Neden bu ilan sana uygun?",
   "missing_skills": ["varsa eksik beceri, yoksa boş array"],
-  "risk_flags": ["dikkat edilmesi gereken varsa, yoksa boş array"]
+  "risk_flags": ["dikkat edilmesi gereken varsa (örn: deneyim şartı yüksek), yoksa boş array"]
 }
 
 Sonucu sadece JSON array döndür: [{ ... }]`,

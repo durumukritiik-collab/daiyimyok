@@ -246,12 +246,11 @@ function JobKart({ job, index }: { job: JobResult; index: number }) {
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all">
-      {/* Header */}
+      {/* Header — her zaman görünür */}
       <button
         onClick={() => setAcik(!acik)}
         className="w-full text-left px-5 py-4 flex items-start gap-4"
       >
-        {/* Skor */}
         <div className={`shrink-0 text-sm font-bold px-2.5 py-1 rounded-lg border ${skorRenk}`}>
           %{job.score}
         </div>
@@ -263,13 +262,16 @@ function JobKart({ job, index }: { job: JobResult; index: number }) {
           </p>
           <div className="flex flex-wrap gap-2 mt-2">
             {job.work_type && (
-              <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">{job.work_type}</span>
+              <span className="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full">{job.work_type}</span>
             )}
             {job.salary && (
-              <span className="text-xs bg-gray-800 text-green-400 px-2 py-0.5 rounded-full">{job.salary}</span>
+              <span className="text-xs bg-green-900/40 text-green-400 px-2 py-0.5 rounded-full">💰 {job.salary}</span>
             )}
             {job.deadline && (
-              <span className="text-xs bg-gray-800 text-orange-400 px-2 py-0.5 rounded-full">📅 {job.deadline}</span>
+              <span className="text-xs bg-orange-900/30 text-orange-400 px-2 py-0.5 rounded-full">📅 {job.deadline}</span>
+            )}
+            {job.posted_date && (
+              <span className="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">{job.posted_date}</span>
             )}
           </div>
         </div>
@@ -277,19 +279,50 @@ function JobKart({ job, index }: { job: JobResult; index: number }) {
         <span className="shrink-0 text-gray-600 text-xs mt-1">{acik ? "▲" : "▼"}</span>
       </button>
 
-      {/* Detay */}
+      {/* Detay — açılınca görünür */}
       {acik && (
-        <div className="px-5 pb-5 space-y-4 border-t border-gray-800 pt-4">
+        <div className="border-t border-gray-800 divide-y divide-gray-800/60">
+
           {/* Neden uygun */}
-          <div>
-            <p className="text-xs text-gray-500 font-medium mb-1.5">NEDEN UYGUN</p>
+          <div className="px-5 py-4">
+            <p className="text-xs text-gray-500 font-medium mb-1.5 uppercase tracking-wide">Neden uygun</p>
             <p className="text-sm text-gray-300 leading-relaxed">{job.reason}</p>
           </div>
 
-          {/* Eksikler */}
-          {job.missing_skills?.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-500 font-medium mb-1.5">DİKKAT ET</p>
+          {/* Aranan nitelikler */}
+          {job.requirements && job.requirements.length > 0 && (
+            <div className="px-5 py-4">
+              <p className="text-xs text-gray-500 font-medium mb-2 uppercase tracking-wide">Aranan nitelikler</p>
+              <ul className="space-y-1.5">
+                {job.requirements.map((r, i) => (
+                  <li key={i} className="text-sm text-gray-300 flex gap-2">
+                    <span className="text-gray-600 shrink-0">·</span>{r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Şirket hakkında */}
+          {job.company_info && (
+            <div className="px-5 py-4">
+              <p className="text-xs text-gray-500 font-medium mb-1.5 uppercase tracking-wide">Şirket</p>
+              <p className="text-sm text-gray-400">{job.company_info}</p>
+            </div>
+          )}
+
+          {/* Başvuru yöntemi */}
+          {job.apply_method && (
+            <div className="px-5 py-4">
+              <p className="text-xs text-gray-500 font-medium mb-1.5 uppercase tracking-wide">Nasıl başvurulur</p>
+              <p className="text-sm text-blue-400">{job.apply_method}</p>
+            </div>
+          )}
+
+          {/* Dikkat et */}
+          {job.missing_skills && job.missing_skills.length > 0 && (
+            <div className="px-5 py-4">
+              <p className="text-xs text-gray-500 font-medium mb-1.5 uppercase tracking-wide">Dikkat et</p>
               <ul className="space-y-1">
                 {job.missing_skills.map((s, i) => (
                   <li key={i} className="text-sm text-yellow-400/80 flex gap-2">
@@ -300,15 +333,17 @@ function JobKart({ job, index }: { job: JobResult; index: number }) {
             </div>
           )}
 
-          {/* Başvur */}
-          <a
-            href={job.apply_link || job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
-          >
-            Başvur →
-          </a>
+          {/* Başvur butonu */}
+          <div className="px-5 py-4">
+            <a
+              href={job.apply_link || job.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+            >
+              İlana Git →
+            </a>
+          </div>
         </div>
       )}
     </div>
