@@ -129,11 +129,28 @@ async function searchAll(queries: string[]): Promise<RawResult[]> {
     .map((r) => ({ url: r.url, title: r.title, content: r.content }));
 }
 
-// ─── Step 4: Deduplication ────────────────────────────────────────────────────
+// ─── Step 4: Deduplication + Listing page filter ─────────────────────────────
+
+// Kategori/liste sayfası URL pattern'leri — bunlar tek bir ilan değil
+const LISTING_PATTERNS = [
+  /\/is-ilanlari\/?$/i,
+  /\/is-ilanlari\/[a-z-]+\/?$/i,   // /is-ilanlari/antalya-psikolog
+  /\/jobs\/?$/i,
+  /\/kariyer\/?$/i,
+  /\/ilanlar\/?$/i,
+  /\?.*sayfa=/i,
+  /\/tum-ilanlar/i,
+  /q-.*-l-.*-is-ilanlari/i,        // indeed kategori sayfası
+];
+
+function isListingPage(url: string): boolean {
+  return LISTING_PATTERNS.some((p) => p.test(url));
+}
 
 function deduplicate(results: RawResult[]): RawResult[] {
   const seen = new Set<string>();
   return results.filter((r) => {
+    if (isListingPage(r.url)) return false;
     const key = r.url.split("?")[0].replace(/\/$/, "").toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
@@ -164,17 +181,28 @@ URL: ${r.url}
         role: "system",
         content: `Sen kıdemli bir kariyer danışmanısın. Kullanıcı profiline göre iş ilanlarını değerlendir.
 
-KURALLAR:
-- Sadece gerçek iş ilanı olan sonuçları dahil et
-- Haber, blog, forum, genel bilgi sayfalarını çıkar
-- Kullanıcının şehriyle veya uzaktan uyuşmayanları çıkar
-- 50 puan altındaki ilanları çıkar
-- Maksimum 8 ilan döndür
+ELİMİNASYON KURALLARI (bu tür sonuçları JSON'a ALMA):
+- Genel ilan listesi / kategori sayfaları (örn: "Antalya psikolog iş ilanları" genel sayfası)
+- Haber, blog, forum, makale sayfaları
+- Eğitim veya kurs siteleri
+- Kullanıcının şehriyle veya tercihiyle uyuşmayan ilanlar
 
-Her ilan için JSON üret:
+DAHİL ETME KURALLARI:
+- Tek bir şirketin gerçek iş ilanı
+- Başvuruya yönlendiren sayfalar
+- Platformlardaki (kariyer.net, eleman.net vb.) bireysel ilan sayfaları
+
+REASON KURALLARI (ÇOK ÖNEMLİ):
+- Kullanıcının özgün profilindeki beceri/deneyimlere doğrudan atıf yap
+- "Bu ilan çeşitli şirketlerin..." gibi GENELDEKİ cümleler YASAK
+- İlanın içeriğinde geçen somut gereksinimleri kullanıcı profiliyle eşleştir
+- Örnek iyi reason: "Çocuk ve ergen deneyimin bu pozisyon için doğrudan eşleşiyor. Klinik ortamda çalışma şartı sunduğun deneyimi karşılıyor."
+- Örnek kötü reason: "Bu ilan senin becerilerini karşılayabilecek şirketlerin ilanlarını içeriyor."
+
+Her ilan için JSON:
 {
   "url": "string",
-  "title": "pozisyon adı",
+  "title": "pozisyon adı — ilanın gerçek başlığı",
   "company": "şirket/kurum adı",
   "location": "şehir",
   "salary": "maaş bilgisi veya boş string",
@@ -182,13 +210,12 @@ Her ilan için JSON üret:
   "deadline": "son başvuru tarihi veya boş string",
   "apply_link": "başvuru URL'i",
   "score": 0-100,
-  "reason": "2-3 cümle neden uygun, kullanıcıya Sen diye hitap et",
-  "missing_skills": ["eksik beceri listesi"],
-  "risk_flags": ["dikkat edilmesi gereken nokta"]
+  "reason": "Kullanıcının profiline özel, somut 2 cümle. Sen diye hitap et.",
+  "missing_skills": ["varsa eksik beceri, yoksa boş array"],
+  "risk_flags": ["dikkat edilmesi gereken varsa, yoksa boş array"]
 }
 
-Sonucu JSON array olarak döndür: [{ ... }, { ... }]
-Başka hiçbir şey yazma.`,
+Sonucu sadece JSON array döndür: [{ ... }]`,
       },
       {
         role: "user",
